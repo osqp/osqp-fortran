@@ -26,16 +26,16 @@ else if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
 fi
 
 
-# Install lcov
-if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-    sudo apt-get install -y lcov
-else if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-    brew update
-    brew install lcov
-    fi
-fi
+# # Install lcov
+# if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+#     sudo apt-get install -y lcov
+# else if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+#     brew update
+#     brew install lcov
+#     fi
+# fi
 
-gem install coveralls-lcov
+# gem install coveralls-lcov
 
 
 # # Install Anaconda

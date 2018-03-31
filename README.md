@@ -1,5 +1,8 @@
 # Fortran interface for OSQP
 
+[![Build Status](https://travis-ci.org/oxfordcontrol/osqp-fortran.svg?branch=master)](https://travis-ci.org/oxfordcontrol/osqp-fortran)
+[![Build status](https://ci.appveyor.com/api/projects/status/ns1b88w39kute6br?svg=true)](https://ci.appveyor.com/project/bstellato/osqp-fortran)
+
 Fortran wrapper for [OSQP](http://osqp.readthedocs.io/): the Operator Splitting QP Solver.
 
 The OSQP (Operator Splitting Quadratic Program) solver is a numerical optimization package for solving problems in the form
