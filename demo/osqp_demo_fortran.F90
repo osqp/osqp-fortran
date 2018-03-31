@@ -56,7 +56,7 @@ PROGRAM TEST_OSQP
   CALL OSQP_settings( settings, data, status )
   IF ( status /= 0 ) THEN
     WRITE( 6, "( ' OSQP_sttings status = ', I0, ' stopping' )" ) status
-    STOP
+    ERROR STOP
   END IF
 
 !  solve the problem
@@ -76,6 +76,11 @@ PROGRAM TEST_OSQP
   WRITE( 6, "( ' status ', A , ' (status value = ', I0, ')' )" )               &
      TRIM( info%status ),  info%status_val
 
+  IF (info%status_val /= 1) THEN
+    WRITE(6, "( ' Error. Problem not solved to optimality ' )")
+    ERROR STOP
+  END IF
+
 
 !  change vector data and resolve
 
@@ -91,7 +96,7 @@ PROGRAM TEST_OSQP
                      q_new = q, l_new = l, u_new = u, x_new = x, y_new = y )
   IF ( status /= 0 ) THEN
     WRITE( 6, "( ' OSQP_solve status = ', I0, ' stopping' )" ) status
-    STOP
+    ERROR STOP
   END IF
 
   WRITE( 6, "( ' modified objective function', ES12.4 )" ) info%obj_val
@@ -101,12 +106,18 @@ PROGRAM TEST_OSQP
   WRITE( 6, "( ' status ', A , ' (status value = ', I0, ')' )" )               &
      TRIM( info%status ),  info%status_val
 
+  IF (info%status_val /= 1) THEN
+    WRITE(6, "( ' Error. Problem not solved to optimality ' )")
+    ERROR STOP
+  END IF
+
 !  cleanup workspace after use
 
    CALL OSQP_cleanup( data, status)
 
   IF ( status /= 0 ) THEN
-    WRITE( 6, "( ' OSQP_cleanup status = ', I0, ' stopping' )" ) status
+     WRITE( 6, "( ' OSQP_cleanup status = ', I0, ' stopping' )" ) status
+     ERROR STOP
   END IF
 
   STOP
