@@ -95,7 +95,7 @@ MODULE OSQP_TYPES
 
 !  linear system solver to use
 
-!!   enum linsys_solver_type linsys_solver
+    INTEGER (KIND = ip) :: linsys_solver = 0
 
 #ifndef EMBEDDED
 
@@ -128,6 +128,14 @@ MODULE OSQP_TYPES
 !  boolean, warm start
 
     INTEGER ( KIND = ip ) :: warm_start = 1
+
+#ifdef PROFILING
+!  boolean, time limit. If 0, no time limit.
+
+    REAL ( KIND = wp ) :: time_limit = 0_wp
+
+#endif
+    
 
   END TYPE OSQP_settings_type
 
