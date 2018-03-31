@@ -130,11 +130,11 @@ c_int osqp_f2c_solve( c_int m, c_int n,
                       OSQPSettings *c_settings, OSQPWorkspace **work,
                       OSQPData **data ){
 
-    c_int exitflag;
+    c_int osqp_status;
     c_int i;
 
 
-    exitflag = 0; // Set exit flag to 0 to start (everything is fine)
+    osqp_status = 0; // Set exit flag to 0 to start (everything is fine)
     
     // Move from fortran to c indexing
 
@@ -178,11 +178,12 @@ c_int osqp_f2c_solve( c_int m, c_int n,
 
     // Solve Problem
 
-    exitflag = osqp_solve(star_work);
+    osqp_status = osqp_solve(star_work);
 
     // Set exitflag
-    if (exitflag != 0){
-      return exitflag;
+    if (osqp_status) {
+      /*     printf( "osqp_status %7d\n", osqp_status ); */
+        exit(osqp_status);
     }
 
     // Record solution and dual variables
@@ -263,5 +264,223 @@ c_int osqp_f2c_cleanup( OSQPSettings *c_settings, OSQPWorkspace *work,
     c_free(data);
     c_free(c_settings);
 
+    return 0 ;
+}
+
+/* interface to update linear cost */
+
+c_int osqp_f2c_update_lin_cost( c_int n, c_float *q_new,
+                                OSQPWorkspace **work ){
+
+     c_int osqp_status;
+
+    // recall workspace
+
+    OSQPWorkspace *star_work = *work;
+
+    // update linear cost
+
+    osqp_status = osqp_update_lin_cost( star_work, q_new ) ;
+
+    if (osqp_status) {
+      /*     printf( "osqp_status %7d\n", osqp_status ); */
+        exit(osqp_status);
+    }
+
+    return 0 ;
+}
+
+/* interface to update lower and upper constraint bounds */
+
+c_int osqp_f2c_update_bounds( c_int m, c_float *l_new, c_float *u_new,
+                              OSQPWorkspace **work ){
+
+     c_int osqp_status;
+
+    // recall workspace
+
+    OSQPWorkspace *star_work = *work;
+
+    // update bounds
+
+    osqp_status = osqp_update_bounds( star_work, l_new, u_new ) ;
+
+    if (osqp_status) {
+      /*     printf( "osqp_status %7d\n", osqp_status ); */
+        exit(osqp_status);
+    }
+
+    return 0 ;
+}
+
+/* interface to update lower constraint bounds */
+
+c_int osqp_f2c_update_lower_bound( c_int m, c_float *l_new,
+                                   OSQPWorkspace **work ){
+
+     c_int osqp_status;
+
+    // recall workspace
+
+    OSQPWorkspace *star_work = *work;
+
+    // update bounds
+
+    osqp_status = osqp_update_lower_bound( star_work, l_new ) ;
+
+    if (osqp_status) {
+      /*     printf( "osqp_status %7d\n", osqp_status ); */
+        exit(osqp_status);
+    }
+
+    return 0 ;
+}
+
+/* interface to update upper constraint bounds */
+
+c_int osqp_f2c_update_upper_bound( c_int m, c_float *u_new,
+                                   OSQPWorkspace **work ){
+
+     c_int osqp_status;
+
+    // recall workspace
+
+    OSQPWorkspace *star_work = *work;
+
+    // update bounds
+
+    osqp_status = osqp_update_upper_bound( star_work, u_new ) ;
+
+    if (osqp_status) {
+      /*     printf( "osqp_status %7d\n", osqp_status ); */
+        exit(osqp_status);
+    }
+
+    return 0 ;
+}
+
+/* interface to warm start primal and dual variables */
+
+c_int osqp_f2c_warm_start( c_int m, c_int n, c_float *x_new, c_float *y_new,
+                           OSQPWorkspace **work ){
+
+     c_int osqp_status;
+
+    // recall workspace
+
+    OSQPWorkspace *star_work = *work;
+
+    // update bounds
+
+    osqp_status = osqp_warm_start( star_work, x_new, y_new ) ;
+
+    if (osqp_status) {
+      /*     printf( "osqp_status %7d\n", osqp_status ); */
+        exit(osqp_status);
+    }
+
+    return 0 ;
+}
+
+/* interface to warm start primal variables */
+
+c_int osqp_f2c_warm_start_x( c_int n, c_float *x_new,
+                             OSQPWorkspace **work ){
+
+     c_int osqp_status;
+
+    // recall workspace
+
+    OSQPWorkspace *star_work = *work;
+
+    // update bounds
+
+    osqp_status = osqp_warm_start_x( star_work, x_new ) ;
+
+    if (osqp_status) {
+      /*     printf( "osqp_status %7d\n", osqp_status ); */
+        exit(osqp_status);
+    }
+
+    return 0 ;
+}
+
+/* interface to warm start dual variables */
+
+c_int osqp_f2c_warm_start_y( c_int m, c_float *y_new,
+                             OSQPWorkspace **work ){
+
+     c_int osqp_status;
+
+    // recall workspace
+
+    OSQPWorkspace *star_work = *work;
+
+    // update bounds
+
+    osqp_status = osqp_warm_start_y( star_work, y_new ) ;
+
+    if (osqp_status) {
+      /*     printf( "osqp_status %7d\n", osqp_status ); */
+        exit(osqp_status);
+    }
+
+    return 0 ;
+}
+
+
+/* interface to resolver */
+
+c_int osqp_f2c_resolve( c_int m, c_int n, c_float *x, c_float *y,
+                        OSQPFInfo *f_info, OSQPWorkspace **work ){
+
+    c_int i, osqp_status;
+
+    // recall workspace
+
+    OSQPWorkspace *star_work = *work;
+
+    // Solve Problem
+
+    osqp_status = osqp_solve(star_work);
+
+    if (osqp_status) {
+      /*     printf( "osqp_status %7d\n", osqp_status ); */
+        exit(osqp_status);
+    }
+
+    // Record solution and dual variables
+
+    for (i = 0 ; i < n ; i++) {
+      x[i] = star_work->solution->x[i];
+    }
+
+    for (i = 0 ; i < m ; i++) {
+      y[i] = star_work->solution->y[i];
+    }
+
+    // Record remaining output information
+
+    f_info->iter = star_work->info->iter;
+    update_status( (OSQPInfo *)f_info, star_work->info->status_val );
+    f_info->status_val = star_work->info->status_val;
+#ifndef EMBEDDED
+    f_info->status_polish = star_work->info->status_polish;
+#endif
+    f_info->obj_val = star_work->info->obj_val;
+    f_info->pri_res = star_work->info->pri_res;
+    f_info->dua_res = star_work->info->dua_res;
+#ifdef PROFILING
+    f_info->setup_time = star_work->info->setup_time;
+    f_info->solve_time = star_work->info->solve_time;
+    f_info->polish_time = star_work->info->polish_time;
+    f_info->run_time = star_work->info->run_time;
+#endif
+#if EMBEDDED != 1
+    f_info->rho_updates = star_work->info->rho_updates;
+    f_info->rho_estimate = star_work->info->rho_estimate;
+#endif
+
+    /*    return f_info->status_val ;*/
     return 0 ;
 }
