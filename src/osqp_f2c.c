@@ -129,8 +129,12 @@ c_int osqp_f2c_solve( c_int m, c_int n,
                       OSQPSettings *c_settings, OSQPWorkspace **work,
                       OSQPData **data ){
 
+    c_int exitflag;
     c_int i;
 
+
+    exitflag = 0; // Set exit flag to 0 to start (everything is fine)
+    
     // Move from fortran to c indexing
 
     for (i = 0 ; i < n+1 ; i++) {
@@ -173,7 +177,12 @@ c_int osqp_f2c_solve( c_int m, c_int n,
 
     // Solve Problem
 
-    osqp_solve(star_work);
+    exitflag = osqp_solve(star_work);
+
+    // Set exitflag
+    if (exitflag != 0){
+      return exitflag;
+    }
 
     // Record solution and dual variables
 
