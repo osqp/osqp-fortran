@@ -1,4 +1,5 @@
 #include "osqp.h"
+#include "auxil.h"
 
 /* Settings struct (see osqp documentation) */
 
@@ -197,7 +198,7 @@ c_int osqp_f2c_solve( c_int m, c_int n,
     // Record remaining output information
 
     f_info->iter = star_work->info->iter;
-    update_status( f_info, star_work->info->status_val );
+    update_status((OSQPInfo *)f_info, star_work->info->status_val );
     f_info->status_val = star_work->info->status_val;
 #ifndef EMBEDDED
     f_info->status_polish = star_work->info->status_polish;

@@ -108,7 +108,8 @@ add_library(osqpf SHARED
 	${CMAKE_CURRENT_SOURCE_DIR}/src/osqpf_types.F90
 	${CMAKE_CURRENT_SOURCE_DIR}/src/osqpf.F90)
 target_link_libraries(osqpf osqp)
-	       
+
+
 # Add test executable
 add_executable(osqp_demo_fortran ${CMAKE_CURRENT_SOURCE_DIR}/demo/osqp_demo_fortran.F90)
 target_link_libraries(osqp_demo_fortran osqpf)
