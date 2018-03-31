@@ -21,7 +21,8 @@ if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
     sudo apt-get install -y gfortran
 else if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
     # gfortran is included in homebrew gcc
-    brew install gcc; brew link --overwrite gcc
+    brew cask uninstall oclint  # This needs to be removed to allow correct gcc linking
+    brew install gcc
     fi
 fi
 
