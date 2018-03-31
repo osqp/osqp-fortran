@@ -109,6 +109,14 @@ add_library(osqpf SHARED
 	${CMAKE_CURRENT_SOURCE_DIR}/src/osqpf.F90)
 target_link_libraries(osqpf osqp)
 
+# Force osqplib to be in the same output directory as this project
+# This is needed in Windows because it is too stupid to look for shared
+# libraries in other folders
+set_target_properties(osqp
+    PROPERTIES
+    LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/out"
+    RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/out"
+)
 
 # Add test executable
 add_executable(osqp_demo_fortran ${CMAKE_CURRENT_SOURCE_DIR}/demo/osqp_demo_fortran.F90)
