@@ -14,24 +14,24 @@ IF "%PLATFORM%"=="x86" (
 set PATH=%MINGW_PATH%;%PATH%
 
 
-:: Activate test environment anaconda
-IF "%PLATFORM%"=="x86" (
-	set MINICONDA_PATH=%MINICONDA%
-) ELSE (
-	set MINICONDA_PATH=%MINICONDA%-%PLATFORM%
-)
-set PATH=%MINICONDA_PATH%;%MINICONDA_PATH%\\Scripts;%PATH%
+rem :: Activate test environment anaconda
+rem IF "%PLATFORM%"=="x86" (
+rem 	set MINICONDA_PATH=%MINICONDA%
+rem ) ELSE (
+rem 	set MINICONDA_PATH=%MINICONDA%-%PLATFORM%
+rem )
+rem set PATH=%MINICONDA_PATH%;%MINICONDA_PATH%\\Scripts;%PATH%
 
 
-conda config --set always_yes yes --set changeps1 no
-REM This, together with next line, disables conda auto update (fixes problem with tqdm)
-conda config --set auto_update_conda false
-REM conda update -q conda
-conda info -a
-conda create -q -n test-environment python=%PYTHON_VERSION% numpy scipy future
-if errorlevel 1 exit /b 1
-:: NB: Need to run with call otherwise the script hangs
-call activate test-environment
+rem conda config --set always_yes yes --set changeps1 no
+rem REM This, together with next line, disables conda auto update (fixes problem with tqdm)
+rem conda config --set auto_update_conda false
+rem REM conda update -q conda
+rem conda info -a
+rem conda create -q -n test-environment python=%PYTHON_VERSION% numpy scipy future
+rem if errorlevel 1 exit /b 1
+rem :: NB: Need to run with call otherwise the script hangs
+rem call activate test-environment
 
 
 :: Set environment for build if 64bit

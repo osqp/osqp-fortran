@@ -10,8 +10,8 @@ cd build
 cmake -G "%CMAKE_PROJECT%" ..
 cmake --build .
 
-:: Test C
-%APPVEYOR_BUILD_FOLDER%\build\out\osqp_tester.exe
+:: Test Fortran
+%APPVEYOR_BUILD_FOLDER%\build\out\osqp_demo_fortran.exe
 if errorlevel 1 exit /b 1
 
 

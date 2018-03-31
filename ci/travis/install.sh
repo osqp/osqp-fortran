@@ -38,19 +38,19 @@ fi
 gem install coveralls-lcov
 
 
-# Install Anaconda
+# # Install Anaconda
 
-# Use the miniconda installer for faster download / install of conda
-# itself
-if [[ $TRAVIS_OS_NAME == 'osx' ]]; then
-    wget http://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh;
-else
-    wget http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
-fi
-chmod +x miniconda.sh && ./miniconda.sh -b -p ${DEPS_DIR}/miniconda
-export PATH=${DEPS_DIR}/miniconda/bin:$PATH
-hash -r
-conda config --set always_yes yes --set changeps1 no
-conda update --yes -q conda
-conda create -n testenv --yes python=$PYTHON_VERSION numpy scipy future
-source activate testenv
+# # Use the miniconda installer for faster download / install of conda
+# # itself
+# if [[ $TRAVIS_OS_NAME == 'osx' ]]; then
+#     wget http://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh;
+# else
+#     wget http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+# fi
+# chmod +x miniconda.sh && ./miniconda.sh -b -p ${DEPS_DIR}/miniconda
+# export PATH=${DEPS_DIR}/miniconda/bin:$PATH
+# hash -r
+# conda config --set always_yes yes --set changeps1 no
+# conda update --yes -q conda
+# conda create -n testenv --yes python=$PYTHON_VERSION numpy scipy future
+# source activate testenv
