@@ -130,12 +130,8 @@ c_int osqp_f2c_solve( c_int m, c_int n,
                       OSQPSettings *c_settings, OSQPWorkspace **work,
                       OSQPData **data ){
 
-    c_int osqp_status;
-    c_int i;
+    c_int i, osqp_status;
 
-
-    osqp_status = 0; // Set exit flag to 0 to start (everything is fine)
-    
     // Move from fortran to c indexing
 
     for (i = 0 ; i < n+1 ; i++) {
@@ -180,7 +176,6 @@ c_int osqp_f2c_solve( c_int m, c_int n,
 
     osqp_status = osqp_solve(star_work);
 
-    // Set exitflag
     if (osqp_status) {
       /*     printf( "osqp_status %7d\n", osqp_status ); */
         exit(osqp_status);
@@ -199,7 +194,7 @@ c_int osqp_f2c_solve( c_int m, c_int n,
     // Record remaining output information
 
     f_info->iter = star_work->info->iter;
-    update_status((OSQPInfo *)f_info, star_work->info->status_val );
+    update_status( (OSQPInfo *)f_info, star_work->info->status_val );
     f_info->status_val = star_work->info->status_val;
 #ifndef EMBEDDED
     f_info->status_polish = star_work->info->status_polish;
@@ -236,18 +231,8 @@ c_int osqp_f2c_solve( c_int m, c_int n,
       A_row[i] = A_row[i]+1;
     }
 
-    // Cleanup
-
-    /*
-    osqp_cleanup(work);
-
-    c_free(star_data->A);
-    c_free(star_data->P);
-    c_free(star_data);
-    c_free(c_settings);
-    */
-
-    return f_info->status_val ;
+    /*    return f_info->status_val ;*/
+    return 0 ;
 }
 
 /* interface to cleanup */

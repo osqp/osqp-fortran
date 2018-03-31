@@ -34,6 +34,12 @@ MODULE OSQP
     FUNCTION osqp_f2c_settings( settings, c_settings ) BIND( C )
     USE iso_c_binding
     USE OSQP_types
+#ifdef DLONG
+    INTEGER, PARAMETER :: ip = c_long_long
+#else
+    INTEGER, PARAMETER :: ip = c_int
+#endif
+    INTEGER ( KIND = ip ) :: osqp_f2c_settings
     TYPE ( OSQP_settings_type ) :: settings
     TYPE ( C_PTR ) :: c_settings
     END function osqp_f2c_settings
@@ -57,7 +63,7 @@ MODULE OSQP
 #else
     INTEGER, PARAMETER :: wp = c_double
 #endif
-    INTEGER ( KIND = ip ) :: osqp_interface
+    INTEGER ( KIND = ip ) :: osqp_f2c_solve
     INTEGER ( KIND = ip ), VALUE :: n
     INTEGER ( KIND = ip ), VALUE :: m
     INTEGER ( KIND = ip ), VALUE :: P_nnz
