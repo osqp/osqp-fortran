@@ -54,14 +54,6 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
-# Code coverage
-*.gcda
-*.gcno
-coverage.info
-coverage_html/
-
-# Doxygen output
-docs/doxygen_out
 
 # Editor files
 # -------------------------------------------------------------------
@@ -71,13 +63,13 @@ docs/doxygen_out
 *#*
 *~
 
-# Gurobi
-# -------------------------------------------------------------------
-gurobi.log
-
 
 # Tags
 # -------------------------------------------------------------------
 tags
 .tags
 .tags1
+
+# Ignore build directory from CMakeFiles
+# -------------------------------------------------------------------
+build/

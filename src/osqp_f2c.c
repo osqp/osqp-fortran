@@ -1,5 +1,4 @@
 #include "osqp.h"
-#include "glob_opts.h"
 
 /* Settings struct (see osqp documentation) */
 
@@ -23,9 +22,7 @@ typedef struct {
     c_float eps_prim_inf;
     c_float eps_dual_inf;
     c_float alpha;
-  /* no fortran equivalent
-    enum linsys_solver_type linsys_solver;
-  */
+    c_int linsys_solver;
 
 #ifndef EMBEDDED
     c_float delta;
@@ -38,6 +35,9 @@ typedef struct {
     c_int scaled_termination;
     c_int check_termination;
     c_int warm_start;
+#ifdef PROFILING
+      c_float time_limit;
+#endif
 
 } OSQPFSettings;
 
@@ -80,7 +80,7 @@ c_int osqp_f2c_settings( OSQPFSettings *f_settings, OSQPSettings **c_settings ){
 
     // Define C solver settings as default
 
-    set_default_settings(star_c_settings);
+    osqp_set_default_settings(star_c_settings);
 
     // Override with fortran settings
 
@@ -101,9 +101,7 @@ c_int osqp_f2c_settings( OSQPFSettings *f_settings, OSQPSettings **c_settings ){
     star_c_settings->eps_prim_inf = f_settings->eps_prim_inf;
     star_c_settings->eps_dual_inf = f_settings->eps_dual_inf;
     star_c_settings->alpha = f_settings->alpha;
-  /* no fortran equivalent
     star_c_settings->linsys_solver = f_settings->linsys_solver;
-  */
 #ifndef EMBEDDED
     star_c_settings->delta = f_settings->delta;
     star_c_settings->polish = f_settings->polish;
@@ -113,6 +111,10 @@ c_int osqp_f2c_settings( OSQPFSettings *f_settings, OSQPSettings **c_settings ){
     star_c_settings->scaled_termination = f_settings->scaled_termination;
     star_c_settings->check_termination = f_settings->check_termination;
     star_c_settings->warm_start = f_settings->warm_start;
+#ifdef PROFILING
+    star_c_settings->time_limit = f_settings->time_limit;
+#endif
+    
 
     return 0 ;
 }
