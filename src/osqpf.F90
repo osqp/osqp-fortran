@@ -1,4 +1,5 @@
-#include "glob_optsf.h"
+! #include "glob_optsf.h"
+#include "osqp_configure.h"
 
 MODULE OSQP
 
