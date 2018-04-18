@@ -1,4 +1,4 @@
-#include "glob_optsf.h"
+#include "osqp_configure.h"
 
 PROGRAM TEST_OSQP
 
