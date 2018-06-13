@@ -24,6 +24,7 @@ else if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
     # gfortran is included in homebrew gcc
     brew cask uninstall oclint  # This needs to be removed to allow correct gcc linking
     brew install gcc@7
+    sudo ln -s /usr/local/bin/gfortran-7 /usr/local/bin/gfortran
     fi
 fi
 
