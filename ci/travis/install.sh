@@ -18,6 +18,7 @@ cmake --version
 
 # Install gfortran
 if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+    sudo apt-get -y update
     sudo apt-get install -y gfortran
 else if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
     # gfortran is included in homebrew gcc
