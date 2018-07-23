@@ -19,9 +19,6 @@ message(STATUS "Fortran interface configuration -----")
 option (FORTRAN "Build Fortran interface" ON)
 message(STATUS "Fortran interface build: ${FORTRAN}")
 
-# Disable C Unittests
-option (UNITTESTS "Enable C unittests generation" OFF)
-
 # ----------------------------------------------
 
 # Add useful libraries
@@ -35,7 +32,7 @@ message(STATUS "OSQP sources configuration -----")
 add_subdirectory(osqp_sources EXCLUDE_FROM_ALL)
 
 # Add shared Fortran library
-add_library(osqpf SHARED 
+add_library(osqpf SHARED
 	${CMAKE_CURRENT_SOURCE_DIR}/src/osqp_f2c.c
 	${CMAKE_CURRENT_SOURCE_DIR}/src/osqpf_types.F90
 	${CMAKE_CURRENT_SOURCE_DIR}/src/osqpf.F90)
