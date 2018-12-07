@@ -136,7 +136,7 @@ MODULE OSQP_TYPES
     REAL ( KIND = wp ) :: time_limit = 0_wp
 
 #endif
-    
+
 
   END TYPE OSQP_settings_type
 
@@ -187,6 +187,10 @@ MODULE OSQP_TYPES
 !  time taken for solve phase (seconds)
 
     REAL ( KIND = wp ) :: solve_time = 0.0_wp
+
+!  time taken for update phase (seconds)
+
+    REAL ( KIND = wp ) :: update_time = 0.0_wp
 
 !  time taken for polish phase (seconds)
 

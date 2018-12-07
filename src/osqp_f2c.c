@@ -60,6 +60,7 @@ typedef struct {
 #ifdef PROFILING
 	c_float setup_time;
 	c_float solve_time;
+	c_float update_time;
 	c_float polish_time;
 	c_float run_time;
 #endif
@@ -115,7 +116,7 @@ c_int osqp_f2c_settings( OSQPFSettings *f_settings, OSQPSettings **c_settings ){
 #ifdef PROFILING
     star_c_settings->time_limit = f_settings->time_limit;
 #endif
-    
+
 
     return 0 ;
 }
@@ -205,6 +206,7 @@ c_int osqp_f2c_solve( c_int m, c_int n,
 #ifdef PROFILING
     f_info->setup_time = star_work->info->setup_time;
     f_info->solve_time = star_work->info->solve_time;
+    f_info->update_time = star_work->info->update_time;
     f_info->polish_time = star_work->info->polish_time;
     f_info->run_time = star_work->info->run_time;
 #endif
