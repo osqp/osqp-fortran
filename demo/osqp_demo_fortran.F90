@@ -1,3 +1,5 @@
+! OSQP V0.6 -> V1.0 upgrade (2026-07-11)
+
 #include "osqp_configure.h"
 
 PROGRAM TEST_OSQP
@@ -8,13 +10,13 @@ PROGRAM TEST_OSQP
 
 !  integer and real precisions
 
-#ifdef DLONG
-    INTEGER, PARAMETER :: ip = c_long_long
+#ifdef OSQP_USE_LONG
+    INTEGER, PARAMETER :: ip = c_int64_t
 #else
-    INTEGER, PARAMETER :: ip = c_int
+    INTEGER, PARAMETER :: ip = c_int32_t
 #endif
 
-#ifdef DFLOAT
+#ifdef OSQP_USE_FLOAT
     INTEGER, PARAMETER :: wp = c_float
 #else
     INTEGER, PARAMETER :: wp = c_double
@@ -24,11 +26,11 @@ PROGRAM TEST_OSQP
 
   INTEGER ( KIND = ip ), PARAMETER :: n = 2
   INTEGER ( KIND = ip ), PARAMETER :: m = 3
-  INTEGER ( KIND = ip ), PARAMETER :: P_nnz = 4
-  INTEGER ( KIND = ip ), DIMENSION( n + 1 ) :: P_ptr = (/ 1, 3, 5 /)
-  INTEGER ( KIND = ip ), DIMENSION( P_nnz ) :: P_row = (/ 1, 2, 1, 2 /)
+  INTEGER ( KIND = ip ), PARAMETER :: P_nnz = 3
+  INTEGER ( KIND = ip ), DIMENSION( n + 1 ) :: P_ptr = (/ 1, 2, 4 /)
+  INTEGER ( KIND = ip ), DIMENSION( P_nnz ) :: P_row = (/ 1, 1, 2 /)
   REAL ( KIND = wp ), DIMENSION( P_nnz ) ::                                    &
-    P_val = (/ 4.0_wp, 1.0_wp, 1.0_wp, 2.0_wp /)
+    P_val = (/ 4.0_wp, 1.0_wp, 2.0_wp /)
   REAL ( KIND = wp ), DIMENSION( n ) :: q = (/ 1.0_wp, 1.0_wp /)
   INTEGER ( KIND = ip ), PARAMETER :: A_nnz = 4
   INTEGER ( KIND = ip ), DIMENSION( n + 1 ) :: A_ptr = (/ 1, 3, 5 /)
@@ -43,13 +45,13 @@ PROGRAM TEST_OSQP
   TYPE ( OSQP_info_type ) :: info
   TYPE ( OSQP_data_type ) :: data
   INTEGER ( KIND = ip ) :: status
-
+  CHARACTER ( LEN = SIZE( info%status ) ) :: info_status
 
 ! change alpha parameter
   settings%alpha = 1.0
 
-!  Change linear system solver
-  settings%linsys_solver = 0
+!  Change linear system solver to a direct one
+  settings%linsys_solver = 1
 
 !  establish the control settings
 
@@ -61,7 +63,7 @@ PROGRAM TEST_OSQP
 
 !  solve the problem
 
-  CALL OSQP_solve( m, n, P_ptr, P_row, P_val, q, A_ptr, A_row, A_val, l, u,    &
+  CALL OSQP_solve( n, m, P_ptr, P_row, P_val, q, A_ptr, A_row, A_val, l, u,    &
                    x, y, info, data, status )
   IF ( status /= 0 ) THEN
     WRITE( 6, "( ' OSQP_solve status = ', I0, ' stopping' )" ) status
@@ -74,13 +76,12 @@ PROGRAM TEST_OSQP
   WRITE( 6, "( ' y:', ( 3ES12.4 ) )" ) y
   WRITE( 6, "( 1X, I0, ' iterations' ) ") info%iter
   WRITE( 6, "( ' status ', A , ' (status value = ', I0, ')' )" )               &
-     TRIM( info%status ),  info%status_val
+     TRIM( TRANSFER( info%status, info_status ) ),  info%status_val
 
-  IF (info%status_val /= 1) THEN
+  IF ( info%status_val /= 1 ) THEN
     WRITE(6, "( ' Error. Problem not solved to optimality ' )")
     ERROR STOP
   END IF
-
 
 !  change vector data and resolve
 
@@ -92,7 +93,7 @@ PROGRAM TEST_OSQP
 
   WRITE( 6, "( /, ' Perturbing problem data and resolving ...', / )" )
 
-  CALL OSQP_resolve( m, n, x, y, info, data, status,                           &
+  CALL OSQP_resolve( n, m, x, y, info, data, status,                           &
                      q_new = q, l_new = l, u_new = u, x_new = x, y_new = y )
   IF ( status /= 0 ) THEN
     WRITE( 6, "( ' OSQP_solve status = ', I0, ' stopping' )" ) status
@@ -104,7 +105,7 @@ PROGRAM TEST_OSQP
   WRITE( 6, "( ' y:', ( 3ES12.4 ) )" ) y
   WRITE( 6, "( 1X, I0, ' iterations' ) ") info%iter
   WRITE( 6, "( ' status ', A , ' (status value = ', I0, ')' )" )               &
-     TRIM( info%status ),  info%status_val
+     TRIM( TRANSFER( info%status, info_status ) ),  info%status_val
 
   IF (info%status_val /= 1) THEN
     WRITE(6, "( ' Error. Problem not solved to optimality ' )")
