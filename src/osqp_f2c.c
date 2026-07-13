@@ -8,84 +8,60 @@
 /* Settings struct (see osqp documentation) */
 
 typedef struct {
+    OSQPInt device;
+    OSQPInt linsys_solver;
+    OSQPInt allocate_solution;
+    OSQPInt verbose;
+    OSQPInt profiler_level;
+    OSQPInt warm_starting;
+    OSQPInt scaling;
+    OSQPInt polishing;
     OSQPFloat rho;
     OSQPInt rho_is_vec;
     OSQPFloat sigma;
-    OSQPInt scaling;
-
-#if OSQP_EMBEDDED_MODE != 1
+    OSQPFloat alpha;
+    OSQPInt cg_max_iter;
+    OSQPInt cg_tol_reduction;
+    OSQPFloat cg_tol_fraction;
+    OSQPInt cg_precond;
     OSQPInt adaptive_rho;
     OSQPInt adaptive_rho_interval;
-    OSQPFloat adaptive_rho_tolerance;
-#ifdef OSQP_ENABLE_PROFILING
     OSQPFloat adaptive_rho_fraction;
-#endif // OSQP_ENABLE_PROFILING
-#endif // OSQP_EMBEDDED_MODE != 1
-
+    OSQPFloat adaptive_rho_tolerance;
     OSQPInt max_iter;
     OSQPFloat eps_abs;
     OSQPFloat eps_rel;
     OSQPFloat eps_prim_inf;
     OSQPFloat eps_dual_inf;
-    OSQPFloat alpha;
-    OSQPInt linsys_solver;
-
-#ifndef OSQP_EMBEDDED_MODE
-    OSQPFloat delta;
-    OSQPInt polishing;
-    OSQPInt polish_refine_iter;
-    OSQPInt verbose;
-#endif
-
     OSQPInt scaled_termination;
     OSQPInt check_termination;
     OSQPInt check_dualgap;
-    OSQPInt warm_starting;
-
-#ifdef OSQP_ENABLE_PROFILING
-      OSQPFloat time_limit;
-#endif
-
-    OSQPInt device;
-    OSQPInt allocate_solution;
-    OSQPInt profiler_level;
-    OSQPInt cg_max_iter;
-    OSQPInt cg_tol_reduction;
-    OSQPFloat cg_tol_fraction;
-    OSQPInt cg_precond;
+    OSQPFloat time_limit;
+    OSQPFloat delta;
+    OSQPInt polish_refine_iter;
 } OSQPFSettings;
 
 /* Solver return information  (see osqp documentation) */
 
 typedef struct {
-	OSQPInt iter;
-	char status[32];
-	OSQPInt status_val;
-
-#ifndef OSQP_EMBEDDED_MODE
-	OSQPInt status_polish;
-#endif
-
-	OSQPFloat obj_val;
-        OSQPFloat dual_obj_val;
-	OSQPFloat prim_res;
-	OSQPFloat dual_res;
-        OSQPFloat duality_gap;
-        OSQPFloat primdual_int;
-        OSQPFloat rel_kkt_error;
-
-#ifdef OSQP_ENABLE_PROFILING
-	OSQPFloat setup_time;
-	OSQPFloat solve_time;
-	OSQPFloat update_time;
-	OSQPFloat polish_time;
-	OSQPFloat run_time;
-#endif
-
-#if OSQP_EMBEDDED_MODE != 1
-	OSQPInt rho_updates;
-	OSQPFloat rho_estimate;
-#endif
+    char status[32];
+    OSQPInt status_val;
+    OSQPInt status_polish;
+    OSQPFloat obj_val;
+    OSQPFloat dual_obj_val;
+    OSQPFloat prim_res;
+    OSQPFloat dual_res;
+    OSQPFloat duality_gap;
+    OSQPInt iter;
+    OSQPInt rho_updates;
+    OSQPFloat rho_estimate;
+    OSQPFloat setup_time;
+    OSQPFloat solve_time;
+    OSQPFloat update_time;
+    OSQPFloat polish_time;
+    OSQPFloat run_time;
+    OSQPFloat primdual_int;
+    OSQPFloat rel_kkt_error;
 } OSQPFInfo;
 
 /* interface to settings */
@@ -96,47 +72,37 @@ OSQPInt osqp_f2c_settings( OSQPFSettings *f_settings, OSQPSettings **settings ){
 
     *settings = OSQPSettings_new();
     OSQPSettings *star_settings = *settings;
+    star_settings->device = f_settings->device;
+    star_settings->linsys_solver = f_settings->linsys_solver;
+    star_settings->allocate_solution = f_settings->allocate_solution;
+    star_settings->verbose = f_settings->verbose;
+    star_settings->profiler_level = f_settings->profiler_level;
+    star_settings->warm_starting = f_settings->warm_starting;
+    star_settings->scaling = f_settings->scaling;
+    star_settings->polishing = f_settings->polishing;
     star_settings->rho = f_settings->rho;
     star_settings->rho_is_vec = f_settings->rho_is_vec;
     star_settings->sigma = f_settings->sigma;
-    star_settings->scaling = f_settings->scaling;
-#if OSQP_EMBEDDED_MODE != 1
+    star_settings->alpha = f_settings->alpha;
+    star_settings->cg_max_iter = f_settings->cg_max_iter;
+    star_settings->cg_tol_reduction = f_settings->cg_tol_reduction;
+    star_settings->cg_tol_fraction = f_settings->cg_tol_fraction;
+    star_settings->cg_precond = f_settings->cg_precond;
     star_settings->adaptive_rho = f_settings->adaptive_rho;
     star_settings->adaptive_rho_interval = f_settings->adaptive_rho_interval;
-    star_settings->adaptive_rho_tolerance = f_settings->adaptive_rho_tolerance;
-#ifdef OSQP_ENABLE_PROFILING
     star_settings->adaptive_rho_fraction = f_settings->adaptive_rho_fraction;
-#endif // OSQP_ENABLE_PROFILING
-#endif // OSQP_EMBEDDED_MODE != 1
+    star_settings->adaptive_rho_tolerance = f_settings->adaptive_rho_tolerance;
     star_settings->max_iter = f_settings->max_iter;
     star_settings->eps_abs = f_settings->eps_abs;
     star_settings->eps_rel = f_settings->eps_rel;
     star_settings->eps_prim_inf = f_settings->eps_prim_inf;
     star_settings->eps_dual_inf = f_settings->eps_dual_inf;
-    star_settings->alpha = f_settings->alpha;
-    star_settings->linsys_solver = f_settings->linsys_solver;
-
-#ifndef OSQP_EMBEDDED_MODE
-    star_settings->delta = f_settings->delta;
-    star_settings->polishing = f_settings->polishing;
-    star_settings->polish_refine_iter = f_settings->polish_refine_iter;
-    star_settings->verbose = f_settings->verbose;
-#endif
     star_settings->scaled_termination = f_settings->scaled_termination;
     star_settings->check_termination = f_settings->check_termination;
     star_settings->check_dualgap = f_settings->check_dualgap;
-    star_settings->warm_starting = f_settings->warm_starting;
-#ifdef OSQP_ENABLE_PROFILING
     star_settings->time_limit = f_settings->time_limit;
-#endif
-    star_settings->device = f_settings->device;
-    star_settings->allocate_solution = f_settings->allocate_solution;
-    star_settings->profiler_level = f_settings->profiler_level;
-    star_settings->cg_max_iter = f_settings->cg_max_iter;
-    star_settings->cg_tol_reduction = f_settings->cg_tol_reduction;
-    star_settings->cg_tol_fraction = f_settings->cg_tol_fraction;
-    star_settings->cg_precond = f_settings->cg_precond;
-
+    star_settings->delta = f_settings->delta;
+    star_settings->polish_refine_iter = f_settings->polish_refine_iter;
     return 0 ;
 }
 

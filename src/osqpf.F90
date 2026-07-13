@@ -5,7 +5,7 @@
 MODULE OSQP
 
   USE iso_c_binding
-  USE OSQP_types
+  USE OSQP_TYPES
   IMPLICIT NONE
 
   PRIVATE
@@ -186,7 +186,7 @@ CONTAINS
   SUBROUTINE OSQP_settings( settings, data, status )
   TYPE( OSQP_settings_type ), INTENT( IN ) :: settings
   TYPE( OSQP_data_type ), INTENT( INOUT ) :: data
-  INTEGER ( ip ), INTENT( OUT) :: status
+  INTEGER ( ip ), INTENT( OUT ) :: status
 
 !  copy the fortran solver settings into their C counterparts
 
@@ -212,7 +212,7 @@ CONTAINS
   REAL ( KIND = wp ), INTENT( INOUT ), DIMENSION( m ) :: y
   TYPE( OSQP_info_type ), INTENT( INOUT ) :: info
   TYPE( OSQP_data_type ), INTENT( INOUT ) :: data
-  INTEGER ( ip ), INTENT( OUT) :: status
+  INTEGER ( ip ), INTENT( OUT ) :: status
 
 !  local variables
 
@@ -238,7 +238,7 @@ CONTAINS
   REAL ( KIND = wp ), INTENT( INOUT ), DIMENSION( m ) :: y
   TYPE( OSQP_info_type ), INTENT( INOUT ) :: info
   TYPE( OSQP_data_type ), INTENT( INOUT ) :: data
-  INTEGER ( ip ), INTENT( OUT) :: status
+  INTEGER ( ip ), INTENT( OUT ) :: status
   REAL ( KIND = wp ), OPTIONAL, DIMENSION( n ) :: q_new
   REAL ( KIND = wp ), OPTIONAL, DIMENSION( m ) :: l_new
   REAL ( KIND = wp ), OPTIONAL, DIMENSION( m ) :: u_new
@@ -266,7 +266,7 @@ CONTAINS
 
   SUBROUTINE OSQP_cleanup( data, status )
   TYPE( OSQP_data_type ), INTENT( INOUT ) :: data
-  INTEGER ( ip ), INTENT( OUT) :: status
+  INTEGER ( ip ), INTENT( OUT ) :: status
 
 !  free outstanding pointers
 
