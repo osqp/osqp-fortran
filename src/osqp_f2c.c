@@ -1,137 +1,123 @@
+/* OSQP V0.6 -> V1.0 upgrade (2026-07-11) */
+
 #include "osqp.h"
 #include "auxil.h"
+#include <stdio.h>
+#include "printing.h"
 
 /* Settings struct (see osqp documentation) */
 
 typedef struct {
-    c_float rho;
-    c_float sigma;
-    c_int scaling;
-
-#if EMBEDDED != 1
-    c_int adaptive_rho;
-    c_int adaptive_rho_interval;
-    c_float adaptive_rho_tolerance;
-#ifdef PROFILING
-    c_float adaptive_rho_fraction;
-#endif // Profiling
-#endif // EMBEDDED != 1
-
-    c_int max_iter;
-    c_float eps_abs;
-    c_float eps_rel;
-    c_float eps_prim_inf;
-    c_float eps_dual_inf;
-    c_float alpha;
-    c_int linsys_solver;
-
-#ifndef EMBEDDED
-    c_float delta;
-    c_int polish;
-    c_int polish_refine_iter;
-
-    c_int verbose;
-#endif
-
-    c_int scaled_termination;
-    c_int check_termination;
-    c_int warm_start;
-#ifdef PROFILING
-      c_float time_limit;
-#endif
-
+    OSQPInt device;
+    OSQPInt linsys_solver;
+    OSQPInt allocate_solution;
+    OSQPInt verbose;
+    OSQPInt profiler_level;
+    OSQPInt warm_starting;
+    OSQPInt scaling;
+    OSQPInt polishing;
+    OSQPFloat rho;
+    OSQPInt rho_is_vec;
+    OSQPFloat sigma;
+    OSQPFloat alpha;
+    OSQPInt cg_max_iter;
+    OSQPInt cg_tol_reduction;
+    OSQPFloat cg_tol_fraction;
+    OSQPInt cg_precond;
+    OSQPInt adaptive_rho;
+    OSQPInt adaptive_rho_interval;
+    OSQPFloat adaptive_rho_fraction;
+    OSQPFloat adaptive_rho_tolerance;
+    OSQPInt max_iter;
+    OSQPFloat eps_abs;
+    OSQPFloat eps_rel;
+    OSQPFloat eps_prim_inf;
+    OSQPFloat eps_dual_inf;
+    OSQPInt scaled_termination;
+    OSQPInt check_termination;
+    OSQPInt check_dualgap;
+    OSQPFloat time_limit;
+    OSQPFloat delta;
+    OSQPInt polish_refine_iter;
 } OSQPFSettings;
 
 /* Solver return information  (see osqp documentation) */
 
 typedef struct {
-	c_int iter;
-	char status[32];
-	c_int status_val;
-
-#ifndef EMBEDDED
-	c_int status_polish;
-#endif
-
-	c_float obj_val;
-	c_float pri_res;
-	c_float dua_res;
-
-#ifdef PROFILING
-	c_float setup_time;
-	c_float solve_time;
-	c_float update_time;
-	c_float polish_time;
-	c_float run_time;
-#endif
-
-#if EMBEDDED != 1
-	c_int rho_updates;
-	c_float rho_estimate;
-#endif
+    char status[32];
+    OSQPInt status_val;
+    OSQPInt status_polish;
+    OSQPFloat obj_val;
+    OSQPFloat dual_obj_val;
+    OSQPFloat prim_res;
+    OSQPFloat dual_res;
+    OSQPFloat duality_gap;
+    OSQPInt iter;
+    OSQPInt rho_updates;
+    OSQPFloat rho_estimate;
+    OSQPFloat setup_time;
+    OSQPFloat solve_time;
+    OSQPFloat update_time;
+    OSQPFloat polish_time;
+    OSQPFloat run_time;
+    OSQPFloat primdual_int;
+    OSQPFloat rel_kkt_error;
 } OSQPFInfo;
 
 /* interface to settings */
 
-c_int osqp_f2c_settings( OSQPFSettings *f_settings, OSQPSettings **c_settings ){
+OSQPInt osqp_f2c_settings( OSQPFSettings *f_settings, OSQPSettings **settings ){
 
     // allocate space for c settings
 
-    *c_settings = (OSQPSettings *)c_malloc(sizeof(OSQPSettings));
-    OSQPSettings *star_c_settings = *c_settings;
-
-    // Define C solver settings as default
-
-    osqp_set_default_settings(star_c_settings);
-
-    // Override with fortran settings
-
-    star_c_settings->rho = f_settings->rho;
-    star_c_settings->sigma = f_settings->sigma;
-    star_c_settings->scaling = f_settings->scaling;
-#if EMBEDDED != 1
-    star_c_settings->adaptive_rho = f_settings->adaptive_rho;
-    star_c_settings->adaptive_rho_interval = f_settings->adaptive_rho_interval;
-    star_c_settings->adaptive_rho_tolerance = f_settings->adaptive_rho_tolerance;
-#ifdef PROFILING
-    star_c_settings->adaptive_rho_fraction = f_settings->adaptive_rho_fraction;
-#endif // Profiling
-#endif // EMBEDDED != 1
-    star_c_settings->max_iter = f_settings->max_iter;
-    star_c_settings->eps_abs = f_settings->eps_abs;
-    star_c_settings->eps_rel = f_settings->eps_rel;
-    star_c_settings->eps_prim_inf = f_settings->eps_prim_inf;
-    star_c_settings->eps_dual_inf = f_settings->eps_dual_inf;
-    star_c_settings->alpha = f_settings->alpha;
-    star_c_settings->linsys_solver = f_settings->linsys_solver;
-#ifndef EMBEDDED
-    star_c_settings->delta = f_settings->delta;
-    star_c_settings->polish = f_settings->polish;
-    star_c_settings->polish_refine_iter = f_settings->polish_refine_iter;
-    star_c_settings->verbose = f_settings->verbose;
-#endif
-    star_c_settings->scaled_termination = f_settings->scaled_termination;
-    star_c_settings->check_termination = f_settings->check_termination;
-    star_c_settings->warm_start = f_settings->warm_start;
-#ifdef PROFILING
-    star_c_settings->time_limit = f_settings->time_limit;
-#endif
-
-
+    *settings = OSQPSettings_new();
+    OSQPSettings *star_settings = *settings;
+    star_settings->device = f_settings->device;
+    star_settings->linsys_solver = f_settings->linsys_solver;
+    star_settings->allocate_solution = f_settings->allocate_solution;
+    star_settings->verbose = f_settings->verbose;
+    star_settings->profiler_level = f_settings->profiler_level;
+    star_settings->warm_starting = f_settings->warm_starting;
+    star_settings->scaling = f_settings->scaling;
+    star_settings->polishing = f_settings->polishing;
+    star_settings->rho = f_settings->rho;
+    star_settings->rho_is_vec = f_settings->rho_is_vec;
+    star_settings->sigma = f_settings->sigma;
+    star_settings->alpha = f_settings->alpha;
+    star_settings->cg_max_iter = f_settings->cg_max_iter;
+    star_settings->cg_tol_reduction = f_settings->cg_tol_reduction;
+    star_settings->cg_tol_fraction = f_settings->cg_tol_fraction;
+    star_settings->cg_precond = f_settings->cg_precond;
+    star_settings->adaptive_rho = f_settings->adaptive_rho;
+    star_settings->adaptive_rho_interval = f_settings->adaptive_rho_interval;
+    star_settings->adaptive_rho_fraction = f_settings->adaptive_rho_fraction;
+    star_settings->adaptive_rho_tolerance = f_settings->adaptive_rho_tolerance;
+    star_settings->max_iter = f_settings->max_iter;
+    star_settings->eps_abs = f_settings->eps_abs;
+    star_settings->eps_rel = f_settings->eps_rel;
+    star_settings->eps_prim_inf = f_settings->eps_prim_inf;
+    star_settings->eps_dual_inf = f_settings->eps_dual_inf;
+    star_settings->scaled_termination = f_settings->scaled_termination;
+    star_settings->check_termination = f_settings->check_termination;
+    star_settings->check_dualgap = f_settings->check_dualgap;
+    star_settings->time_limit = f_settings->time_limit;
+    star_settings->delta = f_settings->delta;
+    star_settings->polish_refine_iter = f_settings->polish_refine_iter;
     return 0 ;
 }
 
 /* interface to solver */
 
-c_int osqp_f2c_solve( c_int m, c_int n,
-                      c_int P_nnz, c_float *P_val, c_int *P_row, c_int *P_ptr,
-                      c_int A_nnz, c_float *A_val, c_int *A_row, c_int *A_ptr,
-                      c_float *q, c_float *l, c_float *u,
-                      c_float *x, c_float *y, OSQPFInfo *f_info,
-                      OSQPSettings *c_settings, OSQPWorkspace **work,
-                      OSQPData **data ){
+OSQPInt osqp_f2c_solve( OSQPSolver **solver, OSQPInt n, OSQPInt m,
+                        OSQPInt P_nnz, OSQPFloat *P_val, 
+                        OSQPInt *P_row, OSQPInt *P_ptr,
+                        OSQPInt A_nnz, OSQPFloat *A_val, 
+                        OSQPInt *A_row, OSQPInt *A_ptr,
+                        OSQPFloat *q, OSQPFloat *l, OSQPFloat *u,
+                        OSQPFloat *x, OSQPFloat *y, 
+                        OSQPSettings *settings, OSQPFInfo *f_info ){
 
-    c_int i, osqp_status;
+    OSQPInt i, exitflag, osqp_status;
 
     // Move from fortran to c indexing
 
@@ -151,31 +137,40 @@ c_int osqp_f2c_solve( c_int m, c_int n,
       A_row[i] = A_row[i]-1;
     }
 
-    // allocate space for c data
-
-    *data = (OSQPData *)c_malloc(sizeof(OSQPData));
-    OSQPData *star_data = *data;
-
     // Populate data
 
-    star_data->n = n;
-    star_data->m = m;
-    star_data->P = csc_matrix(star_data->n, star_data->n,
+    OSQPCscMatrix* P = OSQPCscMatrix_new(n, n,
                               P_nnz, P_val, P_row, P_ptr);
-    star_data->A = csc_matrix(star_data->m, star_data->n,
+    OSQPCscMatrix* A = OSQPCscMatrix_new(m, n,
                               A_nnz, A_val, A_row, A_ptr);
-    star_data->q = q;
-    star_data->l = l;
-    star_data->u = u;
 
-    // Setup workspace
+  /*
+    OSQPInt cap = osqp_capabilities();
 
-    *work = osqp_setup(star_data, c_settings);
-    OSQPWorkspace *star_work = *work;
+    printf("This OSQP library supports:\n");
+    if(cap & OSQP_CAPABILITY_DIRECT_SOLVER) {
+      printf("    A direct linear algebra solver\n");
+    }
+    if(cap & OSQP_CAPABILITY_INDIRECT_SOLVER) {
+      printf("    An indirect linear algebra solver\n");
+    }
+    if(cap & OSQP_CAPABILITY_CODEGEN) {
+      printf("    Code generation\n");
+    }
+    if(cap & OSQP_CAPABILITY_DERIVATIVES) {
+      printf("    Derivatives calculation\n");
+    }
+    printf("\n");
+   */ 
 
-    // Solve Problem
+   /* Setup solver */
+    *solver = NULL;
+   exitflag = osqp_setup(solver, P, q, A, l, u, m, n, settings);
 
-    osqp_status = osqp_solve(star_work);
+  /* Solve problem */
+
+   OSQPSolver *star_solver = *solver;
+  if (!exitflag) osqp_status = osqp_solve(star_solver);
 
     if (osqp_status) {
       /*     printf( "osqp_status %7d\n", osqp_status ); */
@@ -185,34 +180,40 @@ c_int osqp_f2c_solve( c_int m, c_int n,
     // Record solution and dual variables
 
     for (i = 0 ; i < n ; i++) {
-      x[i] = star_work->solution->x[i];
+      x[i] = star_solver->solution->x[i];
     }
 
     for (i = 0 ; i < m ; i++) {
-      y[i] = star_work->solution->y[i];
+      y[i] = star_solver->solution->y[i];
     }
 
     // Record remaining output information
 
-    f_info->iter = star_work->info->iter;
-    update_status( (OSQPInfo *)f_info, star_work->info->status_val );
-    f_info->status_val = star_work->info->status_val;
-#ifndef EMBEDDED
-    f_info->status_polish = star_work->info->status_polish;
+    /*     printf( "osqp_status %7d\n", osqp_status ); */
+
+    update_status( (OSQPInfo *)f_info, star_solver->info->status_val );
+    f_info->iter = star_solver->info->iter;
+    f_info->status_val = star_solver->info->status_val;
+#ifndef OSQP_EMBEDDED_MODE
+    f_info->status_polish = star_solver->info->status_polish;
 #endif
-    f_info->obj_val = star_work->info->obj_val;
-    f_info->pri_res = star_work->info->pri_res;
-    f_info->dua_res = star_work->info->dua_res;
-#ifdef PROFILING
-    f_info->setup_time = star_work->info->setup_time;
-    f_info->solve_time = star_work->info->solve_time;
-    f_info->update_time = star_work->info->update_time;
-    f_info->polish_time = star_work->info->polish_time;
-    f_info->run_time = star_work->info->run_time;
+    f_info->obj_val = star_solver->info->obj_val;
+    f_info->dual_obj_val = star_solver->info->dual_obj_val;
+    f_info->prim_res = star_solver->info->prim_res;
+    f_info->dual_res = star_solver->info->dual_res;
+    f_info->duality_gap = star_solver->info->duality_gap;
+#ifdef OSQP_ENABLE_PROFILING
+    f_info->setup_time = star_solver->info->setup_time;
+    f_info->solve_time = star_solver->info->solve_time;
+    f_info->update_time = star_solver->info->update_time;
+    f_info->polish_time = star_solver->info->polish_time;
+    f_info->run_time = star_solver->info->run_time;
 #endif
-#if EMBEDDED != 1
-    f_info->rho_updates = star_work->info->rho_updates;
-    f_info->rho_estimate = star_work->info->rho_estimate;
+#if OSQP_EMBEDDED_MODE != 1
+    f_info->rho_updates = star_solver->info->rho_updates;
+    f_info->rho_estimate = star_solver->info->rho_estimate;
+    f_info->primdual_int = star_solver->info->primdual_int;
+    f_info->rel_kkt_error = star_solver->info->rel_kkt_error;
 #endif
 
     // Restore fortran indexing
@@ -233,110 +234,41 @@ c_int osqp_f2c_solve( c_int m, c_int n,
       A_row[i] = A_row[i]+1;
     }
 
+    // cleanup A and P
+
+    OSQPCscMatrix_free(A);
+    OSQPCscMatrix_free(P);
+
     /*    return f_info->status_val ;*/
     return 0 ;
 }
 
 /* interface to cleanup */
 
-c_int osqp_f2c_cleanup( OSQPSettings *c_settings, OSQPWorkspace *work,
-                        OSQPData *data ){
+OSQPInt osqp_f2c_cleanup( OSQPSolver *solver, OSQPSettings *settings ){
 
     // Cleanup
 
-    osqp_cleanup(work);
-
-    c_free(data->A);
-    c_free(data->P);
-    c_free(data);
-    c_free(c_settings);
+    osqp_cleanup(solver);
+    OSQPSettings_free(settings);
 
     return 0 ;
 }
 
-/* interface to update linear cost */
+/* interface to update data vectors */
 
-c_int osqp_f2c_update_lin_cost( c_int n, c_float *q_new,
-                                OSQPWorkspace **work ){
+OSQPInt osqp_f2c_update_data_vec( OSQPSolver **solver, OSQPInt n, OSQPInt m, 
+                                  OSQPFloat *q_new, OSQPFloat *l_new, OSQPFloat *u_new ){
 
-     c_int osqp_status;
+     OSQPInt osqp_status;
 
-    // recall workspace
+    // recall solver data
 
-    OSQPWorkspace *star_work = *work;
+    OSQPSolver *star_solver = *solver;
 
-    // update linear cost
+    // update data vectors
 
-    osqp_status = osqp_update_lin_cost( star_work, q_new ) ;
-
-    if (osqp_status) {
-      /*     printf( "osqp_status %7d\n", osqp_status ); */
-        exit(osqp_status);
-    }
-
-    return 0 ;
-}
-
-/* interface to update lower and upper constraint bounds */
-
-c_int osqp_f2c_update_bounds( c_int m, c_float *l_new, c_float *u_new,
-                              OSQPWorkspace **work ){
-
-     c_int osqp_status;
-
-    // recall workspace
-
-    OSQPWorkspace *star_work = *work;
-
-    // update bounds
-
-    osqp_status = osqp_update_bounds( star_work, l_new, u_new ) ;
-
-    if (osqp_status) {
-      /*     printf( "osqp_status %7d\n", osqp_status ); */
-        exit(osqp_status);
-    }
-
-    return 0 ;
-}
-
-/* interface to update lower constraint bounds */
-
-c_int osqp_f2c_update_lower_bound( c_int m, c_float *l_new,
-                                   OSQPWorkspace **work ){
-
-     c_int osqp_status;
-
-    // recall workspace
-
-    OSQPWorkspace *star_work = *work;
-
-    // update bounds
-
-    osqp_status = osqp_update_lower_bound( star_work, l_new ) ;
-
-    if (osqp_status) {
-      /*     printf( "osqp_status %7d\n", osqp_status ); */
-        exit(osqp_status);
-    }
-
-    return 0 ;
-}
-
-/* interface to update upper constraint bounds */
-
-c_int osqp_f2c_update_upper_bound( c_int m, c_float *u_new,
-                                   OSQPWorkspace **work ){
-
-     c_int osqp_status;
-
-    // recall workspace
-
-    OSQPWorkspace *star_work = *work;
-
-    // update bounds
-
-    osqp_status = osqp_update_upper_bound( star_work, u_new ) ;
+    osqp_status = osqp_update_data_vec( star_solver, q_new, l_new, u_new ) ;
 
     if (osqp_status) {
       /*     printf( "osqp_status %7d\n", osqp_status ); */
@@ -348,18 +280,18 @@ c_int osqp_f2c_update_upper_bound( c_int m, c_float *u_new,
 
 /* interface to warm start primal and dual variables */
 
-c_int osqp_f2c_warm_start( c_int m, c_int n, c_float *x_new, c_float *y_new,
-                           OSQPWorkspace **work ){
+OSQPInt osqp_f2c_warm_start( OSQPSolver **solver, OSQPInt n, OSQPInt m, 
+                             OSQPFloat *x_new, OSQPFloat *y_new ){
 
-     c_int osqp_status;
+     OSQPInt osqp_status;
 
-    // recall workspace
+    // recall solver data
 
-    OSQPWorkspace *star_work = *work;
+    OSQPSolver *star_solver = *solver;
 
     // update bounds
 
-    osqp_status = osqp_warm_start( star_work, x_new, y_new ) ;
+    osqp_status = osqp_warm_start( star_solver, x_new, y_new ) ;
 
     if (osqp_status) {
       /*     printf( "osqp_status %7d\n", osqp_status ); */
@@ -368,68 +300,21 @@ c_int osqp_f2c_warm_start( c_int m, c_int n, c_float *x_new, c_float *y_new,
 
     return 0 ;
 }
-
-/* interface to warm start primal variables */
-
-c_int osqp_f2c_warm_start_x( c_int n, c_float *x_new,
-                             OSQPWorkspace **work ){
-
-     c_int osqp_status;
-
-    // recall workspace
-
-    OSQPWorkspace *star_work = *work;
-
-    // update bounds
-
-    osqp_status = osqp_warm_start_x( star_work, x_new ) ;
-
-    if (osqp_status) {
-      /*     printf( "osqp_status %7d\n", osqp_status ); */
-        exit(osqp_status);
-    }
-
-    return 0 ;
-}
-
-/* interface to warm start dual variables */
-
-c_int osqp_f2c_warm_start_y( c_int m, c_float *y_new,
-                             OSQPWorkspace **work ){
-
-     c_int osqp_status;
-
-    // recall workspace
-
-    OSQPWorkspace *star_work = *work;
-
-    // update bounds
-
-    osqp_status = osqp_warm_start_y( star_work, y_new ) ;
-
-    if (osqp_status) {
-      /*     printf( "osqp_status %7d\n", osqp_status ); */
-        exit(osqp_status);
-    }
-
-    return 0 ;
-}
-
 
 /* interface to resolver */
 
-c_int osqp_f2c_resolve( c_int m, c_int n, c_float *x, c_float *y,
-                        OSQPFInfo *f_info, OSQPWorkspace **work ){
+OSQPInt osqp_f2c_resolve( OSQPSolver **solver, OSQPInt n, OSQPInt m, 
+                          OSQPFloat *x, OSQPFloat *y, OSQPFInfo *f_info ){
 
-    c_int i, osqp_status;
+    OSQPInt i, osqp_status;
 
-    // recall workspace
+    // recall solver data
 
-    OSQPWorkspace *star_work = *work;
+    OSQPSolver *star_solver = *solver;
 
     // Solve Problem
 
-    osqp_status = osqp_solve(star_work);
+    osqp_status = osqp_solve(star_solver);
 
     if (osqp_status) {
       /*     printf( "osqp_status %7d\n", osqp_status ); */
@@ -439,35 +324,60 @@ c_int osqp_f2c_resolve( c_int m, c_int n, c_float *x, c_float *y,
     // Record solution and dual variables
 
     for (i = 0 ; i < n ; i++) {
-      x[i] = star_work->solution->x[i];
+      x[i] = star_solver->solution->x[i];
     }
 
     for (i = 0 ; i < m ; i++) {
-      y[i] = star_work->solution->y[i];
+      y[i] = star_solver->solution->y[i];
     }
 
     // Record remaining output information
 
-    f_info->iter = star_work->info->iter;
-    update_status( (OSQPInfo *)f_info, star_work->info->status_val );
-    f_info->status_val = star_work->info->status_val;
-#ifndef EMBEDDED
-    f_info->status_polish = star_work->info->status_polish;
+    update_status( (OSQPInfo *)f_info, star_solver->info->status_val );
+    f_info->iter = star_solver->info->iter;
+    f_info->status_val = star_solver->info->status_val;
+#ifndef OSQP_EMBEDDED_MODE
+    f_info->status_polish = star_solver->info->status_polish;
 #endif
-    f_info->obj_val = star_work->info->obj_val;
-    f_info->pri_res = star_work->info->pri_res;
-    f_info->dua_res = star_work->info->dua_res;
-#ifdef PROFILING
-    f_info->setup_time = star_work->info->setup_time;
-    f_info->solve_time = star_work->info->solve_time;
-    f_info->polish_time = star_work->info->polish_time;
-    f_info->run_time = star_work->info->run_time;
+    f_info->obj_val = star_solver->info->obj_val;
+    f_info->dual_obj_val = star_solver->info->dual_obj_val;
+    f_info->prim_res = star_solver->info->prim_res;
+    f_info->dual_res = star_solver->info->dual_res;
+    f_info->duality_gap = star_solver->info->duality_gap;
+#ifdef OSQP_ENABLE_PROFILING
+    f_info->setup_time = star_solver->info->setup_time;
+    f_info->solve_time = star_solver->info->solve_time;
+    f_info->update_time = star_solver->info->update_time;
+    f_info->polish_time = star_solver->info->polish_time;
+    f_info->run_time = star_solver->info->run_time;
 #endif
-#if EMBEDDED != 1
-    f_info->rho_updates = star_work->info->rho_updates;
-    f_info->rho_estimate = star_work->info->rho_estimate;
+#if OSQP_EMBEDDED_MODE != 1
+    f_info->rho_updates = star_solver->info->rho_updates;
+    f_info->rho_estimate = star_solver->info->rho_estimate;
+    f_info->primdual_int = star_solver->info->primdual_int;
+    f_info->rel_kkt_error = star_solver->info->rel_kkt_error;
 #endif
 
     /*    return f_info->status_val ;*/
     return 0 ;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

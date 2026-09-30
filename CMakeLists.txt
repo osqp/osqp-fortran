@@ -1,5 +1,4 @@
-cmake_minimum_required(VERSION 3.2)
-
+cmake_minimum_required(VERSION 3.5)
 
 # Project name
 project (osqp-fortran)
@@ -8,8 +7,13 @@ project (osqp-fortran)
 enable_language(Fortran)
 
 # Set the output folder where your program will be created
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/out)
-set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/out)
+set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
+set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
+
+set(CMAKE_Fortran_MODULE_DIRECTORY ${LIBRARY_OUTPUT_PATH})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../osqp/include/private)
+
+#set(CMAKE_BUILD_TYPE Debug)
 
 # Set options
 # ----------------------------------------------
@@ -32,6 +36,10 @@ message(STATUS "OSQP sources configuration -----")
 add_subdirectory(osqp_sources EXCLUDE_FROM_ALL)
 
 # Add shared Fortran library
+#add_library(osqpf_static STATIC
+#	${CMAKE_CURRENT_SOURCE_DIR}/src/osqp_f2c.c
+#	${CMAKE_CURRENT_SOURCE_DIR}/src/osqpf_types.F90
+#	${CMAKE_CURRENT_SOURCE_DIR}/src/osqpf.F90)
 add_library(osqpf SHARED
 	${CMAKE_CURRENT_SOURCE_DIR}/src/osqp_f2c.c
 	${CMAKE_CURRENT_SOURCE_DIR}/src/osqpf_types.F90
@@ -43,10 +51,12 @@ target_link_libraries(osqpf osqp)
 # libraries in other folders
 set_target_properties(osqp
     PROPERTIES
-    LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/out"
-    RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/out"
+    LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/lib"
+    RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/lib"
 )
 
 # Add test executable
-add_executable(osqp_demo_fortran ${CMAKE_CURRENT_SOURCE_DIR}/demo/osqp_demo_fortran.F90)
+add_executable(osqp_demo_fortran 
+  ${CMAKE_CURRENT_SOURCE_DIR}/demo/osqp_demo_fortran.F90)
 target_link_libraries(osqp_demo_fortran osqpf)
+

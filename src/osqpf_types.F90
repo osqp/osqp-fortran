@@ -1,5 +1,6 @@
-#include "osqp_configure.h"
+! OSQP V0.6 -> V1.0 upgrade (2026-07-11)
 
+#include "osqp_configure.h"
 
 MODULE OSQP_TYPES
 
@@ -10,13 +11,13 @@ MODULE OSQP_TYPES
 
 !  integer and real precisions
 
-#ifdef DLONG
-    INTEGER, PARAMETER :: ip = c_long_long
+#ifdef OSQP_USE_LONG
+    INTEGER, PARAMETER :: ip = c_int64_t
 #else
-    INTEGER, PARAMETER :: ip = c_int
+    INTEGER, PARAMETER :: ip = c_int32_t
 #endif
 
-#ifdef DFLOAT
+#ifdef OSQP_USE_FLOAT
     INTEGER, PARAMETER :: wp = c_float
 #else
     INTEGER, PARAMETER :: wp = c_double
@@ -33,42 +34,112 @@ MODULE OSQP_TYPES
 
   TYPE, BIND( C ), PUBLIC :: OSQP_settings_type
 
-!  ADMM step rho
+!  linear algebra settings
+!  -----------------------
 
-    REAL ( KIND = wp ) :: rho = ten ** ( - 1 )
+!  device identifier; currently used for CUDA devices
 
-!  ADMM step sigma
+    INTEGER ( KIND = ip ) :: device = 0               
 
-    REAL ( KIND = wp ) :: sigma = ten ** ( - 6 )
+!  linear system solver to use (1 = direct, 2 = iterative)
 
-!  heuristic data scaling iterations. If 0, scaling disabled
+    INTEGER ( KIND = ip ) :: linsys_solver = 1
+
+!  control settings
+!  ----------------
+
+!  allocate solution in OSQPSolver during osqp_setup (0 = no, 1 = yes)?
+
+    INTEGER ( KIND = ip ) :: allocate_solution = 1               
+
+!  write out progres (0 = no, 1 = yes)?
+
+    INTEGER ( KIND = ip ) :: verbose = 1
+
+!  level of detail for profiler annotations
+
+    INTEGER ( KIND = ip ) :: profiler_level = 0                 
+
+!  warm start (0 = no, 1 = yes)
+
+    INTEGER ( KIND = ip ) :: warm_starting = 1
+
+!  heuristic data scaling iterations; if 0, scaling disabled
 
     INTEGER ( KIND = ip ) :: scaling = 10
 
-#if EMBEDDED != 1
+!  polish ADMM solution (0 = no, 1 = yes)?
 
-!  boolean, is rho step size adaptive?
+    INTEGER ( KIND = ip ) :: polishing = 0
+
+!  ADMM parameters
+!  ---------------
+
+!  penalty parameter
+
+    REAL ( KIND = wp ) :: rho = ten ** ( - 1 )
+
+!  is rho a scalar or a vector (0 = no, 1 = yes)?
+
+#ifdef OSQP_ALGEBRA_CUDA
+    INTEGER ( KIND = ip ) :: rho_is_vec = 0
+#else
+    INTEGER ( KIND = ip ) :: rho_is_vec = 1
+#endif
+
+!  step parameter
+
+    REAL ( KIND = wp ) :: sigma = ten ** ( - 6 )
+
+!  relaxation parameter
+
+    REAL ( KIND = wp ) :: alpha = 1.6_wp
+
+!  CG settings
+!  -----------
+
+!  maximum number of CG iterations per solve
+
+    INTEGER ( KIND = ip ) :: cg_max_iter = 20
+
+!  number of consecutive zero CG iterations before tolerance gets halved
+
+    INTEGER ( KIND = ip ) :: cg_tol_reduction = 10
+
+!  CG tolerance (fraction of ADMM residuals)
+
+    REAL ( KIND = wp ) :: cg_tol_fraction = 0.15_wp
+
+!  preconditioner to use in the CG method
+
+    INTEGER ( KIND = ip ) :: cg_precond = 1
+
+!  adaptive rho logic
+!  ------------------
+
+!  is rho step size adaptive (0 = no, 1 = yes)?
 
     INTEGER ( KIND = ip ) :: adaptive_rho = 1
 
-!  Number of iterations between rho adaptations rho. If 0, it is automatic
+!  number of iterations between rho adaptations rho. If 0, it is automatic
 
     INTEGER ( KIND = ip ) :: adaptive_rho_interval = 0
 
-!  Tolerance X for adapting rho. The new rho has to be X times larger or 1/X
-!  times smaller than the current one to trigger a new factorization.
-
-    REAL ( KIND = wp ) :: adaptive_rho_tolerance = 5.0_wp
-
-#ifdef PROFILING
-
-!  Interval for adapting rho (fraction of the setup time)
+!  interval for adapting rho (fraction of the setup time)
 
     REAL ( KIND = wp ) :: adaptive_rho_fraction = 0.4_wp
 
+!  tolerance X for adapting rho. The new rho has to be X times larger or 1/X
+!  times smaller than the current one to trigger a new factorization.
+
+#ifdef OSQP_ALGEBRA_CUDA
+    REAL ( KIND = wp ) :: adaptive_rho_tolerance = 2.0_wp
+#else
+    REAL ( KIND = wp ) :: adaptive_rho_tolerance = 5.0_wp
 #endif
 
-#endif
+!  termination parameters
+!  ----------------------  
 
 !  maximum iterations
 
@@ -90,53 +161,37 @@ MODULE OSQP_TYPES
 
     REAL ( KIND = wp ) :: eps_dual_inf = ten ** ( - 4 )
 
-!  relaxation parameter
+!  use scaled termination criteria (0 = no, 1 = yes)?
 
-    REAL ( KIND = wp ) :: alpha = 1.6_c_double
+    INTEGER ( KIND = ip ) :: scaled_termination = 0
 
-!  linear system solver to use
+!  check termination interval; if 0, termination checking is disabled
 
-    INTEGER (KIND = ip) :: linsys_solver = 0
+#ifdef OSQP_ALGEBRA_CUDA
+    INTEGER ( KIND = ip ) :: check_termination = 5
+#else
+    INTEGER ( KIND = ip ) :: check_termination = 25
+#endif
 
-#ifndef EMBEDDED
+!  use duality gap termination criteria (0 = no, 1 = yes)?
+
+#ifdef OSQP_USE_FLOAT
+    INTEGER ( KIND = ip ) :: check_dualgap = 0
+#else
+    INTEGER ( KIND = ip ) :: check_dualgap = 1
+#endif
+
+!  maximum time to solve the problem (seconds) > 0
+
+    REAL ( KIND = wp ) :: time_limit = ten ** 10
 
 !  regularization parameter for polish
 
     REAL ( KIND = wp ) :: delta = ten ** ( - 6 )
 
-!  boolean, polish ADMM solution
-
-    INTEGER ( KIND = ip ) :: polish = 0
-
 !  iterative refinement steps in polish
 
     INTEGER ( KIND = ip ) :: polish_refine_iter = 3
-
-!  boolean, write out progres
-
-    INTEGER ( KIND = ip ) :: verbose = 1
-
-#endif
-
-!  boolean, use scaled termination criteria
-
-    INTEGER ( KIND = ip ) :: scaled_termination = 0
-
-!  integer, check termination interval. If 0, termination checking is disabled
-
-    INTEGER ( KIND = ip ) :: check_termination = 25
-
-!  boolean, warm start
-
-    INTEGER ( KIND = ip ) :: warm_start = 1
-
-#ifdef PROFILING
-!  boolean, time limit. If 0, no time limit.
-
-    REAL ( KIND = wp ) :: time_limit = 0_wp
-
-#endif
-
 
   END TYPE OSQP_settings_type
 
@@ -146,39 +201,62 @@ MODULE OSQP_TYPES
 
   TYPE, BIND( C ), PUBLIC :: OSQP_info_type
 
-!  number of iterations taken
-
-    INTEGER ( KIND = ip ) :: iter = - 1
+!  solver status
+!  -------------
 
 !  status string, e.g. 'solved'
 
-    CHARACTER ( KIND = c_char, LEN = 32 ) :: status = REPEAT( ' ', 32 )
+!   CHARACTER ( KIND = c_char, LEN = 31 ) :: status = REPEAT( ' ', 31 )
+    CHARACTER ( KIND = c_char ) :: status( 31 ) = ' '
 
-!  status as c_int, defined in constants.h
+!  status as defined in osqp_api_constants.h
 
     INTEGER ( KIND = ip ) :: status_val = - 10
-
-#ifndef EMBEDDED
 
 !  polish status: successful (1), unperformed (0), (-1) unsuccessful
 
     INTEGER ( KIND = ip ) :: status_polish = 0
 
-#endif
+!  solution quality
+!  ----------------
 
 !  primal objective
 
     REAL ( KIND = wp ) :: obj_val = biginf
 
+!  dual objective value
+
+    REAL ( KIND = wp ) :: dual_obj_val = biginf
+
 !  norm of primal residual
 
-    REAL ( KIND = wp ) :: pri_res = biginf
+    REAL ( KIND = wp ) :: prim_res = biginf
 
 !  norm of dual residual
 
-    REAL ( KIND = wp ) :: dua_res = biginf
+    REAL ( KIND = wp ) :: dual_res = biginf
 
-#ifdef PROFILING
+!  duality gap (primal objective - dual objective)
+
+    REAL ( KIND = wp ) :: duality_gap = biginf
+
+!  algorithm information
+!  ---------------------
+
+!  number of iterations taken
+
+    INTEGER ( KIND = ip ) :: iter = - 1
+
+!  number of rho updates
+
+    INTEGER ( KIND = ip ) :: rho_updates = 0
+
+!  best rho estimate so far from residuals
+
+    REAL ( KIND = wp ) :: rho_estimate = biginf
+
+!  timing information
+!  ------------------
 
 !  time taken for setup phase (seconds)
 
@@ -200,19 +278,16 @@ MODULE OSQP_TYPES
 
     REAL ( KIND = wp ) :: run_time = 0.0_wp
 
-#endif
+!  convergence information
+!  -----------------------
 
-#if EMBEDDED != 1
+!  integral of duality gap over time (Primal-dual integral), requires profiling
 
-!  number of rho updates
+    REAL ( KIND = wp ) :: primdual_int = biginf
 
-    INTEGER ( KIND = ip ) :: rho_updates = 0
+!  relative KKT error
 
-!  best rho estimate so far from residuals
-
-    REAL ( KIND = wp ) :: rho_estimate = biginf
-
-#endif
+    REAL ( KIND = wp ) :: rel_kkt_error = biginf
 
   END TYPE OSQP_info_type
 
@@ -225,8 +300,7 @@ MODULE OSQP_TYPES
 !  internal structures
 
     TYPE ( c_ptr ) :: c_settings
-    TYPE ( c_ptr ) :: c_work
-    TYPE ( c_ptr ) :: c_data
+    TYPE ( c_ptr ) :: c_solver
 
   END TYPE OSQP_data_type
 
